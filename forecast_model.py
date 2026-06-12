@@ -2,7 +2,11 @@ import numpy as np
 import pandas as pd
 import joblib
 
-from hmmlearn import hmm
+try:
+    from hmmlearn import hmm
+except:
+    hmm = None
+
 from xgboost import XGBClassifier
 
 from sklearn.model_selection import train_test_split
@@ -19,6 +23,15 @@ from sklearn.metrics import (
 # =====================================================
 
 def detect_market_regime(historical_data):
+
+    # If hmmlearn isn't installed
+    if hmm is None:
+        return {
+            "current_regime": "Neutral",
+            "regime_volatility": 0
+        }
+
+    try:
 
     df = pd.DataFrame(historical_data)
 
@@ -99,7 +112,7 @@ def train_forecast_model(csv_path):
     """
 
     df = pd.read_sql(query, engine)
-    
+
     df.rename(
         columns={
             "Nifty50 Index Value": "Nifty50",

@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: native-capital
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn server:app --host 0.0.0.0 --port $PORT
+    pythonVersion: 3.10.11
