@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "ag-grid-react": "^35.3.1",
+    "react-grid-layout": "^2.2.3"
+  }
+}
