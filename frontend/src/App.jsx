@@ -1,13 +1,13 @@
 // src/App.jsx
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from 'recharts';
-import { LayoutDashboard, TrendingUp, Database, Activity, RefreshCw, FileSpreadsheet, Radio, Brain, ShieldAlert } from 'lucide-react';
+import { LayoutDashboard, TrendingUp, Database, Activity, RefreshCw, FileSpreadsheet, Radio } from 'lucide-react';
 import './App.css';
 
-// Dynamically handle local testing vs Cloudflare tunneling
+// Dynamically handle local testing vs Cloudflare tunneling or Render production deployments
 const isLocal = window.location.hostname === "localhost";
-const API_BASE_URL = isLocal ? "https://native-capital.onrender.com" : "https://native-capital.onrender.com";
-const WS_BASE_URL = isLocal ?   "wss://native-capital.onrender.com/ws/ledger" : "wss://native-capital.onrender.com/ws/ledger";
+const API_BASE_URL = "https://native-capital.onrender.com";
+const WS_BASE_URL = "wss://native-capital.onrender.com/ws/ledger";
 
 function App() {
   const [activeTab, setActiveTab] = useState('forecast'); 
@@ -47,11 +47,18 @@ function App() {
       // PRE-FILL LIVE DATA: Instantly load the ticker bar before the WebSocket connects
       if (tableJson && tableJson.length > 0) {
         const latestRow = tableJson[0];
+        
+        // Dynamic key safety alignment check to process both column-case configurations seamlessly
+        const targetNifty = latestRow.Nifty50 !== undefined ? latestRow.Nifty50 : latestRow.nifty50;
+        const targetRsi = latestRow.Nifty_RSI !== undefined ? latestRow.Nifty_RSI : latestRow.rsi;
+        const targetTrend = latestRow.SMA_Trend !== undefined ? latestRow.SMA_Trend : latestRow.sma_trend;
+
         setLiveData({
-          nifty50: Number(latestRow.Nifty50),
-          rsi: Number(latestRow.Nifty_RSI).toFixed(1),
-          volatility: regimeJson?.volatility ? (Number(regimeJson.volatility) * 100).toFixed(2) : 12.4,
-          signal: latestRow.SMA_Trend === "Bullish" ? "BUY" : "SELL"
+          nifty50: Number(targetNifty || 23000),
+          rsi: Number(targetRsi || 50.0).toFixed(1),
+          // Normalized to percentage basis formats to avoid layout micro-jumps
+          volatility: regimeJson?.volatility ? (Number(regimeJson.volatility) * 100).toFixed(2) : "12.40",
+          signal: targetTrend === "Bullish" ? "BUY" : "SELL"
         });
       }
     })
@@ -140,9 +147,9 @@ function App() {
       {/* MAIN CONTENT AREA */}
       <main className="main-content">
 
-        {/* GLOBAL LIVE TICKER BAR (Now persistently renders) */}
+        {/* GLOBAL LIVE TICKER BAR */}
         <div style={{ display: 'flex', justifyContent: 'space-between', backgroundColor: '#1E222D', padding: '12px 24px', borderRadius: '8px', marginBottom: '20px', border: '1px solid #2A2E39' }}>
-          <span style={{color: '#858D99', fontSize: '0.9rem'}}>NIFTY 50 LIVE: <strong style={{color: '#fff', fontSize: '1.1rem', marginLeft: '8px'}}>{liveData ? liveData.nifty50.toLocaleString('en-IN', {minimumFractionDigits: 2}) : 'SYNCING...'}</strong></span>
+          <span style={{color: '#858D99', fontSize: '0.9rem'}}>NIFTY 50 LIVE: <strong style={{color: '#fff', fontSize: '1.1rem', marginLeft: '8px'}}>{liveData ? Number(liveData.nifty50).toLocaleString('en-IN', {minimumFractionDigits: 2}) : 'SYNCING...'}</strong></span>
           <span style={{color: '#858D99', fontSize: '0.9rem'}}>RSI (14): <strong style={{color: '#00ffcc', fontSize: '1.1rem', marginLeft: '8px'}}>{liveData ? liveData.rsi : '--'}</strong></span>
           <span style={{color: '#858D99', fontSize: '0.9rem'}}>MARKET VOLATILITY: <strong style={{color: '#ff00ff', fontSize: '1.1rem', marginLeft: '8px'}}>{liveData ? `${liveData.volatility}%` : '--'}</strong></span>
           <span style={{color: '#858D99', fontSize: '0.9rem'}}>ACTIVE SIGNAL: <strong style={{color: liveData?.signal?.includes('BUY') ? '#00ffcc' : liveData?.signal?.includes('SELL') ? '#ff4444' : '#ff00ff', fontSize: '1.1rem', marginLeft: '8px'}}>{liveData ? liveData.signal : 'WAIT'}</strong></span>
@@ -238,8 +245,8 @@ function App() {
                   <h2 style={{ color: regime?.currentRegime === "BULL" ? "#00ffcc" : "#ff4444" }}>
                     {regime?.currentRegime || "UNKNOWN"}
                   </h2>
-                  <p>SMA20: {" "}{regime?.sma20?.toFixed(0) || "N/A"}</p>
-                  <p>SMA200: {" "}{regime?.sma200?.toFixed(0) || "N/A"}</p>
+                  <p>SMA20: {" "}{regime?.sma20 ? Number(regime.sma20).toFixed(0) : "N/A"}</p>
+                  <p>SMA200: {" "}{regime?.sma200 ? Number(regime.sma200).toFixed(0) : "N/A"}</p>
                 </div>
 
                 <div className="card">

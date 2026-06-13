@@ -358,13 +358,13 @@ def simulate_portfolio(horizon: int = 30, vol: float = 1.0):
     if xgb_model is not None:
         try:
             latest_features = pd.DataFrame([{
-                 "Ratio": latest["Ratio"],
-                 "Nifty_Return": latest["Nifty_Return"],
-                 "Smallcap_Return": latest["Smallcap_Return"],
-                 "Nifty_RSI": latest["Nifty_RSI"],
-                 "Momentum_20D": latest["Momentum_20D"],
-                 "Volatility_20D": latest["Volatility_20D"],
-                 "EMA_Spread": latest["EMA_Spread"]
+                "Ratio": latest["Ratio"],
+                "Nifty_Return": latest["Nifty_Return"],
+                "Smallcap_Return": latest["Smallcap_Return"],
+                "Nifty_RSI": latest["Nifty_RSI"],
+                "Momentum_20D": latest["Momentum_20D"],
+                "Volatility_20D": latest["Volatility_20D"],
+                "EMA_Spread": latest["EMA_Spread"]
             }])
             daily_drift = float(xgb_model.predict(latest_features)[0])
         except Exception as e:
@@ -458,28 +458,38 @@ def get_iq200_prediction():
             df = pd.read_sql(query, conn)
 
         if df.empty:
-            return {"signal": "NO DATA", "probability": 0, "confidence": 0, "model": "IQ200"}
+            return {
+                "signal": "NO_DATA",
+                "probability": 0,
+                "confidence": 0,
+                "iq_score": 0,
+                "model": "IQ200"
+            }
 
         row = df.iloc[0]
         probability = float(row["probability_up"]) * 100
         confidence = float(row["confidence"]) * 100
         prediction = int(row["prediction"])
-
         signal = "BUY" if prediction == 1 else "SELL"
-        iq_score = round(probability * confidence / 100, 1)
 
         return {
             "signal": signal,
             "probability": round(probability, 2),
             "confidence": round(confidence, 2),
-            "iq_score": iq_score,
-            "model": row["model_name"]
+            "iq_score": round(probability * confidence / 100, 2),
+            "model": str(row["model_name"]),
+            "prediction_date": str(row["prediction_date"])
         }
+
     except Exception as e:
-        print(f"IQ200 Database Error: {e}")
-        return {"signal": "ERROR", "probability": 0, "confidence": 0, "model": "IQ200"}
-
-
+        return {
+            "signal": "ERROR",
+            "probability": 0,
+            "confidence": 0,
+            "iq_score": 0,
+            "error": str(e)
+        }
+    
 @app.get("/")
 def home():
     return {
@@ -491,25 +501,29 @@ def home():
 
 @app.get("/api/debug")
 def debug():
-
-    from database import engine
-    import pandas as pd
-
     try:
-        pred = pd.read_sql(
-            "SELECT * FROM predictions ORDER BY prediction_date DESC LIMIT 5",
-            engine
-        )
+        query = text("""
+        SELECT *
+        FROM predictions
+        ORDER BY prediction_date DESC
+        LIMIT 5
+        """)
+
+        with engine.connect() as conn:
+            df = pd.read_sql(query, conn)
 
         return {
-            "rows": pred.to_dict(orient="records"),
-            "count": len(pred)
+            "status": "success",
+            "rows_found": len(df),
+            "rows": df.fillna("").to_dict(orient="records")
         }
 
     except Exception as e:
         return {
+            "status": "error",
             "error": str(e)
         }
+
 # ---------------------------------------------------
 # RUN LAYER
 # ---------------------------------------------------

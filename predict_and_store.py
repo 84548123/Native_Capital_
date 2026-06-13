@@ -1,5 +1,7 @@
+
 import joblib
 import pandas as pd
+import numpy as np
 
 from sqlalchemy import text
 from datetime import datetime
@@ -36,42 +38,190 @@ print("\n📊 Database Columns Retrieved:")
 print(df.columns.tolist())
 
 # =====================================
-# COLUMN MAPPING
+# COLUMN NORMALIZATION
 # =====================================
 
-rename_map = {
-    "ratio": "Ratio",
-    "nifty_return": "Nifty_Return",
-    "smallcap_return": "Smallcap_Return",
-    "rsi": "Nifty_RSI",
-    "momentum20": "Momentum_20D",
-    "volatility20": "Volatility_20D",
-    "macd": "MACD",
-    "macd_signal": "MACD_Signal",
-    "trend_strength": "Trend_Strength",
-    "regime": "Regime"
-}
-
-df.rename(columns=rename_map, inplace=True)
-
-# =====================================
-# DERIVED FEATURES
-# =====================================
-
-df["EMA_Spread"] = df["ema20"] - df["ema200"]
-
-df["SMA_20_200_Ratio"] = (
-    df["sma20"] /
-    df["sma200"]
+df.rename(
+    columns={
+        "nifty50": "Nifty50",
+        "smallcap250": "Smallcap250"
+    },
+    inplace=True
 )
 
 # =====================================
-# CLEAN
+# FEATURE ENGINEERING
+# =====================================
+
+df["Ratio"] = (
+    df["Nifty50"] /
+    df["Smallcap250"]
+)
+
+df["Nifty_Return"] = (
+    df["Nifty50"]
+    .pct_change()
+)
+
+df["Smallcap_Return"] = (
+    df["Smallcap250"]
+    .pct_change()
+)
+
+# =====================================
+# RSI
+# =====================================
+
+delta = df["Nifty50"].diff()
+
+gain = delta.where(delta > 0, 0)
+loss = -delta.where(delta < 0, 0)
+
+avg_gain = gain.ewm(
+    com=13,
+    adjust=False
+).mean()
+
+avg_loss = loss.ewm(
+    com=13,
+    adjust=False
+).mean()
+
+rs = avg_gain / avg_loss
+
+df["Nifty_RSI"] = (
+    100 -
+    (100 / (1 + rs))
+)
+
+# =====================================
+# SMA
+# =====================================
+
+df["Nifty_20_SMA"] = (
+    df["Nifty50"]
+    .rolling(20)
+    .mean()
+)
+
+df["Nifty_200_SMA"] = (
+    df["Nifty50"]
+    .rolling(200)
+    .mean()
+)
+
+df["SMA_20_200_Ratio"] = (
+    df["Nifty_20_SMA"] /
+    df["Nifty_200_SMA"]
+)
+
+# =====================================
+# EMA
+# =====================================
+
+df["Nifty_20_EMA"] = (
+    df["Nifty50"]
+    .ewm(
+        span=20,
+        adjust=False
+    )
+    .mean()
+)
+
+df["Nifty_200_EMA"] = (
+    df["Nifty50"]
+    .ewm(
+        span=200,
+        adjust=False
+    )
+    .mean()
+)
+
+df["EMA_Spread"] = (
+    df["Nifty_20_EMA"] -
+    df["Nifty_200_EMA"]
+)
+
+# =====================================
+# MOMENTUM
+# =====================================
+
+df["Momentum_20D"] = (
+    df["Nifty50"] -
+    df["Nifty50"].shift(20)
+)
+
+# =====================================
+# VOLATILITY
+# =====================================
+
+df["Volatility_20D"] = (
+    df["Nifty_Return"]
+    .rolling(20)
+    .std()
+)
+
+# =====================================
+# MACD
+# =====================================
+
+ema12 = (
+    df["Nifty50"]
+    .ewm(
+        span=12,
+        adjust=False
+    )
+    .mean()
+)
+
+ema26 = (
+    df["Nifty50"]
+    .ewm(
+        span=26,
+        adjust=False
+    )
+    .mean()
+)
+
+df["MACD"] = ema12 - ema26
+
+df["MACD_Signal"] = (
+    df["MACD"]
+    .ewm(
+        span=9,
+        adjust=False
+    )
+    .mean()
+)
+
+# =====================================
+# TREND STRENGTH
+# =====================================
+
+df["Trend_Strength"] = (
+    abs(df["EMA_Spread"]) /
+    df["Nifty50"]
+)
+
+# =====================================
+# REGIME
+# =====================================
+
+df["Regime"] = (
+    (
+        df["Nifty_20_SMA"] >
+        df["Nifty_200_SMA"]
+    )
+    .astype(int)
+)
+
+# =====================================
+# CLEAN DATA
 # =====================================
 
 df.replace(
     [float("inf"), -float("inf")],
-    pd.NA,
+    np.nan,
     inplace=True
 )
 
@@ -81,11 +231,11 @@ print("\nRows Available:", len(df))
 
 if len(df) == 0:
     raise Exception(
-        "No rows left after cleaning. Check feature columns."
+        "No rows left after feature engineering."
     )
 
 # =====================================
-# VERIFY MODEL FEATURES
+# VERIFY FEATURES
 # =====================================
 
 missing = [
@@ -149,7 +299,26 @@ print(
 )
 
 # =====================================
-# STORE TO POSTGRESQL
+# CREATE TABLE IF NEEDED
+# =====================================
+
+with engine.begin() as conn:
+
+    conn.execute(
+        text("""
+        CREATE TABLE IF NOT EXISTS predictions (
+            id SERIAL PRIMARY KEY,
+            prediction_date TIMESTAMP,
+            model_name VARCHAR(100),
+            probability_up DOUBLE PRECISION,
+            prediction INTEGER,
+            confidence DOUBLE PRECISION
+        )
+        """)
+    )
+
+# =====================================
+# STORE PREDICTION
 # =====================================
 
 with engine.begin() as conn:
@@ -202,3 +371,4 @@ verify = pd.read_sql(
 
 print("\nLatest Predictions:")
 print(verify)
+
