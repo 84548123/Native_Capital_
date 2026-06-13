@@ -489,6 +489,27 @@ def home():
         "deployment": "Render"
     }
 
+@app.get("/api/debug")
+def debug():
+
+    from database import engine
+    import pandas as pd
+
+    try:
+        pred = pd.read_sql(
+            "SELECT * FROM predictions ORDER BY prediction_date DESC LIMIT 5",
+            engine
+        )
+
+        return {
+            "rows": pred.to_dict(orient="records"),
+            "count": len(pred)
+        }
+
+    except Exception as e:
+        return {
+            "error": str(e)
+        }
 # ---------------------------------------------------
 # RUN LAYER
 # ---------------------------------------------------

@@ -6,8 +6,8 @@ import './App.css';
 
 // Dynamically handle local testing vs Cloudflare tunneling
 const isLocal = window.location.hostname === "localhost";
-const API_BASE_URL = isLocal ? "http://localhost:8000" : "https://discretion-routing-intl-hunt.trycloudflare.com"; 
-const WS_BASE_URL = isLocal ? "ws://localhost:8000/ws/ledger" : "wss://discretion-routing-intl-hunt.trycloudflare.com/ws/ledger";
+const API_BASE_URL = isLocal ? "https://native-capital.onrender.com" : "https://native-capital.onrender.com";
+const WS_BASE_URL = isLocal ?   "wss://native-capital.onrender.com/ws/ledger" : "wss://native-capital.onrender.com/ws/ledger";
 
 function App() {
   const [activeTab, setActiveTab] = useState('forecast'); 
