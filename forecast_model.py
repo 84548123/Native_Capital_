@@ -2,11 +2,6 @@ import numpy as np
 import pandas as pd
 import joblib
 
-try:
-    from hmmlearn import hmm
-except:
-    hmm = None
-
 from xgboost import XGBClassifier
 
 from sklearn.model_selection import train_test_split
@@ -17,83 +12,16 @@ from sklearn.metrics import (
     f1_score
 )
 
-
 # =====================================================
 # MARKET REGIME DETECTION
+# DEPLOYMENT SAFE VERSION
 # =====================================================
 
 def detect_market_regime(historical_data):
 
-    # If hmmlearn isn't installed
-    if hmm is None:
-        return {
-            "current_regime": "Neutral",
-            "regime_volatility": 0
-        }
-
-    try:
-
-    df = pd.DataFrame(historical_data)
-
-    if "Daily_Return" not in df.columns:
-        df["Daily_Return"] = (
-            df["Portfolio_Value"].pct_change()
-        )
-
-    returns = (
-        df["Daily_Return"]
-        .dropna()
-        .values
-        .reshape(-1, 1)
-    )
-
-    if len(returns) < 30:
-        return {
-            "current_regime": "Insufficient Data",
-            "regime_volatility": 0
-        }
-
-    model = hmm.GaussianHMM(
-        n_components=2,
-        covariance_type="full",
-        n_iter=100,
-        random_state=42
-    )
-
-    model.fit(returns)
-
-    hidden_states = model.predict(returns)
-
-    vol0 = np.var(
-        returns[hidden_states == 0]
-    )
-
-    vol1 = np.var(
-        returns[hidden_states == 1]
-    )
-
-    bear_state = (
-        1 if vol1 > vol0 else 0
-    )
-
-    current_state = hidden_states[-1]
-
     return {
-        "current_regime":
-            "Bear Market"
-            if current_state == bear_state
-            else "Bull Market",
-
-        "regime_volatility":
-            float(
-                np.sqrt(
-                    np.var(
-                        returns[
-                            hidden_states == current_state
-                        ]
-                    )
-                )
-            )
+        "current_regime": "Neutral",
+        "regime_volatility": 0
     }
 
 
@@ -103,15 +31,7 @@ def detect_market_regime(historical_data):
 
 def train_forecast_model(csv_path):
 
-    from database import engine
-
-    query = """
-    SELECT *
-    FROM market_data
-    ORDER BY date
-    """
-
-    df = pd.read_sql(query, engine)
+    df = pd.read_csv(csv_path)
 
     df.rename(
         columns={
@@ -121,9 +41,9 @@ def train_forecast_model(csv_path):
         inplace=True
     )
 
-    # ==========================================
+    # =====================================
     # BASIC FEATURES
-    # ==========================================
+    # =====================================
 
     df["Ratio"] = (
         df["Nifty50"] /
@@ -140,10 +60,9 @@ def train_forecast_model(csv_path):
         .pct_change()
     )
 
-    # ==========================================
+    # =====================================
     # TARGET
-    # Predict if Nifty goes UP after 5 days
-    # ==========================================
+    # =====================================
 
     df["Future_Return"] = (
         df["Nifty_Return"]
@@ -154,9 +73,9 @@ def train_forecast_model(csv_path):
         df["Future_Return"] > 0
     ).astype(int)
 
-    # ==========================================
+    # =====================================
     # RSI
-    # ==========================================
+    # =====================================
 
     delta = df["Nifty50"].diff()
 
@@ -187,19 +106,13 @@ def train_forecast_model(csv_path):
         (100 / (1 + rs))
     )
 
-    # ==========================================
+    # =====================================
     # SMA
-    # ==========================================
+    # =====================================
 
     df["Nifty_20_SMA"] = (
         df["Nifty50"]
         .rolling(20)
-        .mean()
-    )
-
-    df["Nifty_50_SMA"] = (
-        df["Nifty50"]
-        .rolling(50)
         .mean()
     )
 
@@ -214,23 +127,14 @@ def train_forecast_model(csv_path):
         df["Nifty_200_SMA"]
     )
 
-    # ==========================================
+    # =====================================
     # EMA
-    # ==========================================
+    # =====================================
 
     df["Nifty_20_EMA"] = (
         df["Nifty50"]
         .ewm(
             span=20,
-            adjust=False
-        )
-        .mean()
-    )
-
-    df["Nifty_50_EMA"] = (
-        df["Nifty50"]
-        .ewm(
-            span=50,
             adjust=False
         )
         .mean()
@@ -250,18 +154,18 @@ def train_forecast_model(csv_path):
         df["Nifty_200_EMA"]
     )
 
-    # ==========================================
+    # =====================================
     # MOMENTUM
-    # ==========================================
+    # =====================================
 
     df["Momentum_20D"] = (
         df["Nifty50"] -
         df["Nifty50"].shift(20)
     )
 
-    # ==========================================
+    # =====================================
     # VOLATILITY
-    # ==========================================
+    # =====================================
 
     df["Volatility_20D"] = (
         df["Nifty_Return"]
@@ -269,19 +173,25 @@ def train_forecast_model(csv_path):
         .std()
     )
 
-    # ==========================================
+    # =====================================
     # MACD
-    # ==========================================
+    # =====================================
 
     ema12 = (
         df["Nifty50"]
-        .ewm(span=12, adjust=False)
+        .ewm(
+            span=12,
+            adjust=False
+        )
         .mean()
     )
 
     ema26 = (
         df["Nifty50"]
-        .ewm(span=26, adjust=False)
+        .ewm(
+            span=26,
+            adjust=False
+        )
         .mean()
     )
 
@@ -289,40 +199,37 @@ def train_forecast_model(csv_path):
 
     df["MACD_Signal"] = (
         df["MACD"]
-        .ewm(span=9, adjust=False)
+        .ewm(
+            span=9,
+            adjust=False
+        )
         .mean()
     )
 
-    # ==========================================
+    # =====================================
     # TREND STRENGTH
-    # ==========================================
+    # =====================================
 
     df["Trend_Strength"] = (
-        abs(df["EMA_Spread"])
-        /
+        abs(df["EMA_Spread"]) /
         df["Nifty50"]
     )
 
-    # ==========================================
+    # =====================================
     # REGIME FEATURE
-    # ==========================================
+    # =====================================
 
-    df["Regime"] = np.where(
-        df["Nifty_20_SMA"] >
-        df["Nifty_200_SMA"],
-        1,
-        0
+    df["Regime"] = (
+        (
+            df["Nifty_20_SMA"] >
+            df["Nifty_200_SMA"]
+        )
+        .astype(int)
     )
 
-    # ==========================================
-    # CLEAN DATA
-    # ==========================================
-
-    df.dropna(inplace=True)
-
-    # ==========================================
+    # =====================================
     # FEATURES
-    # ==========================================
+    # =====================================
 
     features = [
         "Ratio",
@@ -339,15 +246,22 @@ def train_forecast_model(csv_path):
         "Regime"
     ]
 
+    # =====================================
+    # CLEAN DATA
+    # =====================================
+
+    df.dropna(inplace=True)
+
     X = df[features]
+
     y = df["Target"]
 
     print("X Shape:", X.shape)
     print("Y Shape:", y.shape)
 
-    # ==========================================
-    # TRAIN TEST SPLIT
-    # ==========================================
+    # =====================================
+    # SPLIT
+    # =====================================
 
     X_train, X_test, y_train, y_test = (
         train_test_split(
@@ -358,19 +272,16 @@ def train_forecast_model(csv_path):
         )
     )
 
-    # ==========================================
-    # XGBOOST CLASSIFIER
-    # ==========================================
+    # =====================================
+    # MODEL
+    # =====================================
 
     model = XGBClassifier(
-        objective="binary:logistic",
-        n_estimators=800,
-        max_depth=6,
-        learning_rate=0.02,
+        n_estimators=500,
+        max_depth=5,
+        learning_rate=0.03,
         subsample=0.8,
         colsample_bytree=0.8,
-        gamma=0.1,
-        min_child_weight=3,
         random_state=42
     )
 
@@ -380,10 +291,6 @@ def train_forecast_model(csv_path):
     )
 
     preds = model.predict(X_test)
-
-    # ==========================================
-    # METRICS
-    # ==========================================
 
     accuracy = accuracy_score(
         y_test,
@@ -409,25 +316,37 @@ def train_forecast_model(csv_path):
 
     print(
         "Accuracy:",
-        round(accuracy * 100, 2),
+        round(
+            accuracy * 100,
+            2
+        ),
         "%"
     )
 
     print(
         "Precision:",
-        round(precision * 100, 2),
+        round(
+            precision * 100,
+            2
+        ),
         "%"
     )
 
     print(
         "Recall:",
-        round(recall * 100, 2),
+        round(
+            recall * 100,
+            2
+        ),
         "%"
     )
 
     print(
         "F1 Score:",
-        round(f1 * 100, 2),
+        round(
+            f1 * 100,
+            2
+        ),
         "%"
     )
 
@@ -445,10 +364,6 @@ def train_forecast_model(csv_path):
             f"{f}: {round(float(i),4)}"
         )
 
-    # ==========================================
-    # SAVE MODEL
-    # ==========================================
-
     joblib.dump(
         {
             "model": model,
@@ -457,14 +372,12 @@ def train_forecast_model(csv_path):
         "outputs/reports/xgb_forecast_model.pkl"
     )
 
-    print("\nModel Saved Successfully.")
+    print(
+        "\nModel Saved Successfully"
+    )
 
     return model
 
-
-# =====================================================
-# RUN
-# =====================================================
 
 if __name__ == "__main__":
 
