@@ -479,6 +479,16 @@ def get_iq200_prediction():
         print(f"IQ200 Database Error: {e}")
         return {"signal": "ERROR", "probability": 0, "confidence": 0, "model": "IQ200"}
 
+
+@app.get("/")
+def home():
+    return {
+        "status": "running",
+        "project": "Native Capital IQ200",
+        "model": "XGBoost",
+        "deployment": "Render"
+    }
+
 # ---------------------------------------------------
 # RUN LAYER
 # ---------------------------------------------------
