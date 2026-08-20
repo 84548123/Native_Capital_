@@ -19,4 +19,4 @@ COPY --from=frontend-builder /app/frontend/dist /app/frontend/dist
 ENV PORT=8080
 EXPOSE 8080
 
-CMD ["sh", "-c", "uvicorn server:app --host 0.0.0.0 --port "]
+CMD ["python", "server.py"]
