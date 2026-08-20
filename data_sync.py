@@ -95,16 +95,34 @@ def sync_latest_market_data():
 
         updated_df.to_csv(CSV_PATH, index=False)
 
+        # Also update SQLite/PostgreSQL market_data table if available
+        try:
+            from database import engine
+            from sqlalchemy import text
+            with engine.connect() as conn:
+                for row in new_rows:
+                    dt_str = row["Date"].strftime("%Y-%m-%d") if hasattr(row["Date"], "strftime") else str(row["Date"])[:10]
+                    n_val = float(row["Nifty50 Index Value"])
+                    s_val = float(row["Nifty SmallCap 250 Index"])
+                    conn.execute(
+                        text("INSERT OR REPLACE INTO market_data (date, nifty50, smallcap250) VALUES (:d, :n, :s)"),
+                        {"d": dt_str, "n": n_val, "s": s_val}
+                    )
+                conn.commit()
+        except Exception as db_err:
+            print(f"[WARN] DB update warning during sync: {db_err}")
+
         return {
             "status": "success",
-            "message": f"Added {len(new_rows)} new trading sessions.",
+            "message": f"Successfully synchronized {len(new_rows)} new trading session(s).",
             "new_rows": len(new_rows)
         }
 
     except Exception as e:
+        print(f"[WARN] Sync error: {e}")
         return {
             "status": "error",
-            "message": str(e)
+            "message": f"Sync Notice: {str(e)}"
         }
 
 if __name__ == "__main__":
