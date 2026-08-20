@@ -1,105 +1,188 @@
-﻿# ⚡ Native Capital — Institutional Quantitative Analytics & Regime Forecasting
+﻿<div align=\"center\">
 
-[![Google Cloud Run](https://img.shields.io/badge/Deploy-Google%20Cloud%20Run-4285F4?logo=googlecloud&logoColor=white)](https://cloud.google.com/run)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
-[![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](https://react.dev)
-[![XGBoost](https://img.shields.io/badge/XGBoost-v2-FF6F00)](https://xgboost.readthedocs.io)
-[![Gaussian HMM](https://img.shields.io/badge/hmmlearn-Gaussian%20HMM-00ffcc)](https://hmmlearn.readthedocs.io)
+# ⚡ Native Capital
+### Institutional Quantitative Intelligence & Adaptive Multi-Asset Allocator
 
-**Native Capital** is an institutional quantitative intelligence workstation engineered for multi-asset allocation between **Nifty 50** and **Nifty SmallCap 250**. It integrates Gaussian Hidden Markov Models (HMM), calibrated XGBoost directional machine learning, multi-strategy backtesting engines, Black Swan crisis stress-testing, and actionable trade rebalancing execution.
+[![Live Demo](https://img.shields.io/badge/Live%20Platform-Google%20Cloud%20Run-4285F4?style=for-the-badge&logo=googlecloud&logoColor=white)](https://native-capital-1035927964593.us-central1.run.app)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
+
+**[🌐 Launch Live Web Platform](https://native-capital-1035927964593.us-central1.run.app)** • **[📡 API Swagger Docs](https://native-capital-1035927964593.us-central1.run.app/docs)** • **[📊 Backtesting Engine](https://native-capital-1035927964593.us-central1.run.app)**
 
 ---
 
-## 🏛️ Platform Architecture
+</div>
+
+## 📌 Executive Overview
+
+**Native Capital** is an institutional quantitative analytics and algorithmic portfolio allocation workstation engineered for Indian equity markets (**Nifty 50 LargeCap** vs. **Nifty SmallCap 250**). 
+
+The platform leverages **Gaussian Hidden Markov Models (HMM)** to detect underlying market volatility regimes, **calibrated XGBoost classifiers** to generate directional conviction signals, **historical crisis stress-testing** to compute crash drawdowns, and an **actionable rebalancing assistant** that translates statistical signals into trade order tickets.
+
+---
+
+## 🏛️ System Architecture
 
 `
-                    ┌────────────────────────────────────────────────────────┐
-                    │               NATIVE CAPITAL QUANT ENGINE              │
-                    │        FastAPI + SQLAlchemy + SQLite / PostgreSQL      │
-                    └──────────────────────────┬─────────────────────────────┘
-                                               │
-         ┌─────────────────────────────────────┼─────────────────────────────────────┐
-         ▼                                     ▼                                     ▼
-┌──────────────────┐                 ┌──────────────────┐                 ┌──────────────────┐
-│  GAUSSIAN HMM    │                 │ QUANT BACKTESTER │                 │ REBALANCE ENGINE │
-│  3-State Regime  │                 │ Sharpe, Sortino, │                 │ Target Weights & │
-│  Classification  │                 │ Calmar & Alpha   │                 │ Order Tickets    │
-└──────────────────┘                 └──────────────────┘                 └──────────────────┘
-         │                                     │                                     │
-         └─────────────────────────────────────┼─────────────────────────────────────┘
-                                               │
-                    ┌──────────────────────────▼─────────────────────────────┐
-                    │          7-TAB REACT QUANTITATIVE DASHBOARD            │
-                    │       Overview • Backtest • Rebalance • Stress •       │
-                    │         Monte Carlo VaR • HMM Matrix • Ledger          │
-                    └────────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────────────────────────────────┐
+│                                 NATIVE CAPITAL QUANT ENGINE                                │
+│                     FastAPI • SQLAlchemy • SQLite / PostgreSQL • Uvicorn                  │
+└─────────────────────────────────────────────┬─────────────────────────────────────────────┘
+                                              │
+         ┌────────────────────────────────────┼────────────────────────────────────┐
+         ▼                                    ▼                                    ▼
+┌──────────────────┐                ┌──────────────────┐                 ┌──────────────────┐
+│  GAUSSIAN HMM    │                │ QUANT BACKTESTER │                 │ REBALANCE ENGINE │
+│  3-State Regime  │                │ Multi-Strategy   │                 │ Real-Time Drift  │
+│  Classification  │                │ Scorecards & VaR │                 │ & Trade Tickets  │
+└────────┬─────────┘                └────────┬─────────┘                 └────────┬─────────┘
+         │                                    │                                    │
+         └────────────────────────────────────┼────────────────────────────────────┘
+                                              │
+                   ┌──────────────────────────▼───────────────────────────┐
+                   │          7-TAB REACT QUANTITATIVE DASHBOARD          │
+                   │               Vite • Recharts • Lucide               │
+                   ├──────────────────────────────────────────────────────┤
+                   │ 1. Terminal Overview    • 5. Monte Carlo & VaR       │
+                   │ 2. Strategy Backtester  • 6. HMM Regime Matrix       │
+                   │ 3. Portfolio Rebalancer • 7. Technical Ledger        │
+                   │ 4. Crisis Stress-Tester                              │
+                   └──────────────────────────────────────────────────────┘
 `
 
 ---
 
-## 🌟 Key Capabilities
+## 🌟 Core Quantitative Features
 
-### 1. Gaussian Hidden Markov Model (HMM) Regime Detection
-- Calibrated 3-state statistical regime classification:
-  - **BULL_TREND**: Positive drift, sustained momentum, and moderate volatility.
-  - **BEAR_MARKET**: Negative drift, elevated downside risk, and high volatility.
-  - **SIDEWAYS_VOLATILE**: Range-bound consolidation phase.
-- Generates live state posterior probabilities and Markov transition probability matrices.
+### 1. 🧭 Gaussian Hidden Markov Model (HMM) Regime Detection
+Markets exhibit non-stationary behaviors characterized by distinct latent volatility states. Native Capital fits a 3-state continuous Gaussian HMM on historical log-return and volatility series:
+* **BULL_TREND**: High positive drift $\mu > 0$, sustained price momentum, low-to-moderate variance.
+* **SIDEWAYS_VOLATILE**: Mean-reverting chop, zero drift $\mu \approx 0$, elevated standard deviation.
+* **BEAR_MARKET**: Severe negative drift $\mu < 0$, regime volatility spikes, heightened downside tail risk.
 
-### 2. Actionable Portfolio Rebalancing Assistant
-- Computes target weights based on the active market regime blended with XGBoost IQ200 conviction score.
-- Generates exact **Trade Execution Order Tickets** with unit sizing, rupee amounts, urgency priority badges, and estimated friction/STT costs.
-- 1-click clipboard copy for trading desk execution.
+P(S_t = j \mid S_{t-1} = i) = A_{ij}
 
-### 3. Historical Crisis & Black Swan Stress-Tester
-- Simulates portfolio survival across major financial shocks:
-  - **2020 COVID Liquidity Flash Shock** ($-38\%$ market drop)
-  - **2008 Global Financial Crisis** ($-52\%$ prolonged bear market)
-  - **2022 Inflation & Rate Hike Tightening** ($-18\%$ compression)
-  - **Custom Sandbox**: Adjustable market shock percentages and volatility scaling multipliers.
-- Calculates Alpha preserved during crashes and estimated days to capital recovery.
+### 2. 💼 Actionable Portfolio Rebalancing Assistant
+Translates mathematical regime states and XGBoost conviction into physical buy/sell execution orders:
+* **Dynamic Target Weights**:
+  * Bull Trend: \%$ SmallCap 250 / \%$ Nifty 50
+  * Sideways Volatile: \%$ SmallCap 250 / \%$ Nifty 50 (Risk-Parity)
+  * Bear Market: \%$ SmallCap 250 / \%$ Nifty 50 (Defensive Capital Preservation)
+* **Execution Ticket Generation**: Calculates exact rupee reallocation amounts, required share unit quantities at live index prices, priority badges (URGENT, RECOMMENDED), and friction estimates (STT + brokerage).
+* **1-Click Copy**: Direct export to clipboard for broker order entry.
 
-### 4. Multi-Strategy Quantitative Backtester
-- Compares 6 allocation models simultaneously:
-  1. *Dynamic Regime Switching*
-  2. *Risk Parity (Inverse 60D Volatility)*
-  3. *Trend Following (20/200 SMA Cross)*
-  4. *Static 50:50 Balanced*
-  5. *Nifty 50 Benchmark*
-  6. *SmallCap 250 Benchmark*
-- Computes annualized **CAGR, Annual Volatility, Sharpe Ratio ( = 6.5\%$), Sortino Ratio, Calmar Ratio, Max Drawdown, Win Rate, and Jensen's Alpha/Beta**.
+### 3. 🛡️ Black Swan & Crisis Stress-Testing Engine
+Simulates historical and synthetic tail-risk events to quantify portfolio survival:
+* **2020 COVID Flash Shock** ($-38\%$ shock, .8\times$ volatility spike)
+* **2008 Global Financial Crisis** ($-52\%$ prolonged credit contraction)
+* **2022 Inflation & Rate Hike Tightening** ($-18\%$ compression)
+* **Custom Sandbox**: Interactive sliders to model custom market drops ($\pm 70\%$) and volatility multipliers.
+* **Metrics**: Compares Max Stress Drawdown, Alpha Preserved ($\Delta \text{Drawdown}$ vs Buy-and-Hold), and estimated days to break-even recovery.
 
-### 5. Monte Carlo Stochastic Risk Engine
-- 200-path stochastic forecasting cone with ML drift calibration.
-- Calculates **95% Value-at-Risk (VaR)**, **99% VaR**, and **95% Expected Shortfall (CVaR)**.
-- SHAP feature importance bar charts.
+### 4. 📈 Multi-Strategy Quantitative Backtester
+Simulates and benchmarks 6 portfolio allocation models across 10+ years:
+1. **Dynamic Regime Switching Strategy**
+2. **Risk Parity (Inverse 60-Day Volatility)**
+3. **Trend Following (20/200-Day SMA Golden/Death Cross)**
+4. **Static 50:50 Benchmark**
+5. **Nifty 50 Buy-and-Hold Index**
+6. **Nifty SmallCap 250 Index**
+
+**Institutional Performance Metrics Calculated:**
+\text{Sharpe Ratio} = \frac{R_p - R_f}{\sigma_p} \quad (\text{Risk-Free Rate } R_f = 6.5\%)
+\text{Sortino Ratio} = \frac{R_p - R_f}{\sigma_d} \quad (\text{Downside Deviation } \sigma_d)
+\text{Calmar Ratio} = \frac{\text{CAGR}}{|\text{Max Drawdown}|}
+
+### 5. 🔮 Monte Carlo & Value-at-Risk (VaR) Engine
+* **200-Path Stochastic Fan Cone**: Geometric Brownian Motion (GBM) with ML drift calibration.
+* **Parametric & Empirical VaR**: Calculates **95% VaR**, **99% VaR**, and **95% Expected Shortfall (CVaR)**.
+* **SHAP Feature Importance**: Explains model feature drivers (RSI, 20/200 SMA Ratio, Volatility, Weekly Returns).
 
 ---
 
-## 🚀 Quick Start (Local Development)
+## 🖥️ Live Dashboard Tour
 
-### 1. One-Click Windows Launcher
-Double-click start_platform.bat in the project root.
+| Tab | Interface | Key Functions |
+|---|---|---|
+| 📊 **1. Terminal Overview** | Live Ticker & IQ200 Conviction | Live market ticks, directional ML signal, KPI cards, and ₹13.8L cumulative equity curve. |
+| 📈 **2. Strategy Backtester** | Multi-Strategy Comparison | Interactive backtest curves, institutional scorecard table, underwater drawdown area chart. |
+| ⚖️ **3. Portfolio Rebalancer** | Trade Execution Tickets | Capital input slider, current vs target weights, drift gauge, and 1-click copy trade tickets. |
+| 🛡️ **4. Crisis Stress-Tester** | Black Swan Simulator | Historical shock selector, custom shock sandbox, crash drawdown cards, and recovery days. |
+| 🔮 **5. Monte Carlo & VaR** | 200-Path Stochastic Cone | Horizon slider (7-90 days), Vol multiplier (0.5x-3x), 95/99% VaR cards, and SHAP charts. |
+| 🧭 **6. HMM Regime Matrix** | Markov Transition Probabilities | Active regime state probabilities, transition probability matrix, 180-day classification history. |
+| 🗄️ **7. Technical Ledger** | Searchable Indicator Database | Complete technical matrix (RSI, MACD, Bollinger Bands) with one-click Excel report export. |
 
-### 2. Manual Commands
-`powershell
-# 1. Start FastAPI Backend (Port 8001)
+---
+
+## 📡 REST API & WebSocket Specifications
+
+### Live API Base URL:
+https://native-capital-1035927964593.us-central1.run.app
+
+| Endpoint | Method | Description |
+|---|---|---|
+| /api/metrics | GET | Cumulative portfolio performance statistics |
+| /api/backtest | GET | Multi-strategy comparative equity curves & scorecards |
+| /api/rebalance | GET | Computes target weights, allocation drift, and execution tickets |
+| /api/stress-test | GET | Simulates crisis drawdown, alpha preserved, and recovery days |
+| /api/regime | GET | Active HMM state, posterior probabilities & transition matrix |
+| /api/regime-history | GET | Historical regime classification timeline |
+| /api/simulate | GET | Monte Carlo risk engine (95%/99% VaR & Expected Shortfall) |
+| /api/iq200 | GET | Directional XGBoost machine learning conviction signal |
+| /api/raw-data | GET | Technical indicators ledger (RSI, MACD, Bollinger Bands) |
+| /api/download-report | GET | Multi-sheet quantitative Excel report export (.xlsx) |
+| /api/sync-market | GET | Live data synchronization from NSE via yfinance |
+| /api/health | GET | Healthcheck and model diagnostic status |
+| /ws/ledger | WS | Real-time WebSocket streaming price and indicator updates |
+
+---
+
+## 🚀 Quick Start & Installation
+
+### Option 1: Local Development (Windows / macOS / Linux)
+
+`ash
+# 1. Clone the repository
+git clone https://github.com/84548123/Native_Capital_.git
+cd Native_Capital_
+
+# 2. Install Python dependencies
+pip install -r requirements.txt
+
+# 3. Start Backend Server (Port 8001)
 python server.py
 
-# 2. Start Vite React Frontend (Port 5173)
+# 4. Start Vite React Frontend (In a new terminal)
 cd frontend
 npm install
 npm run dev
 `
 
-Visit the dashboard at [**http://localhost:5173**](http://localhost:5173) (Swagger API docs at [http://localhost:8001/docs](http://localhost:8001/docs)).
+Visit the dashboard at [**http://localhost:5173**](http://localhost:5173).
 
 ---
 
-## ☁️ Deployment to Google Cloud Platform (GCP)
+### Option 2: Docker Containerization
 
-### Deploy to Google Cloud Run with 1 Command:
 `ash
+# Build production multi-stage image
+docker build -t native-capital:latest .
+
+# Run container
+docker run -p 8080:8080 -e PORT=8080 native-capital:latest
+`
+
+Visit [**http://localhost:8080**](http://localhost:8080).
+
+---
+
+### Option 3: Deploy to Google Cloud Platform (GCP Cloud Run)
+
+`ash
+# Deploy with single gcloud command
 gcloud run deploy native-capital \
   --source . \
   --region us-central1 \
@@ -112,24 +195,17 @@ gcloud run deploy native-capital \
 
 ---
 
-## 📡 API Endpoints Reference
+## 🛠️ Technology Stack
 
-| Route | Method | Description |
-|---|---|---|
-| /api/metrics | GET | Cumulative portfolio performance statistics |
-| /api/backtest | GET | Multi-strategy comparative equity curves & scorecards |
-| /api/rebalance | GET | Generates optimal rebalancing orders & drift analysis |
-| /api/stress-test | GET | Black swan crash simulations & recovery projections |
-| /api/regime | GET | Active HMM state, posterior probabilities & transition matrix |
-| /api/regime-history | GET | Historical regime classification timeline |
-| /api/simulate | GET | Monte Carlo risk engine (95%/99% VaR & Expected Shortfall) |
-| /api/iq200 | GET | Directional XGBoost machine learning conviction signal |
-| /api/raw-data | GET | Technical indicators ledger (RSI, MACD, Bollinger Bands) |
-| /api/download-report | GET | Multi-sheet quantitative Excel report export |
-| /api/sync-market | GET | Live data synchronization from NSE via yfinance |
-| /api/health | GET | Healthcheck and model diagnostic status |
+* **Backend Engine**: Python 3.11, FastAPI, Uvicorn, SQLAlchemy, SQLite, Pandas, NumPy
+* **Quantitative & Machine Learning**: hmmlearn (Gaussian HMM), xgboost, scikit-learn, scipy, joblib
+* **Frontend Dashboard**: React 18, Vite, Recharts, Lucide React Icons, CSS Modern Dark Theme
+* **Cloud & DevOps**: Google Cloud Run, Google Cloud Build, Docker Multi-Stage, GitHub Actions CI/CD
 
 ---
 
-## 📄 License
-MIT License. Built for institutional quantitative analytics and algorithmic portfolio allocation.
+## 📄 License & Disclaimer
+
+This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
+
+*Disclaimer: Native Capital is an educational and quantitative research software platform. It does not constitute financial, investment, or trading advice. Past performance is not indicative of future market returns.*
