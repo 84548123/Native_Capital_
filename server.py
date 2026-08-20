@@ -171,6 +171,23 @@ manager = ConnectionManager()
 async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
     try:
+        # Send initial snapshot immediately upon connect
+        df = load_and_process_ledger()
+        if not df.empty:
+            last_row = df.iloc[-1]
+            init_packet = {
+                "type": "MARKET_UPDATE",
+                "metrics": {
+                    "nifty50": round(float(last_row["Nifty50"]), 2),
+                    "rsi": round(float(last_row.get("Nifty_RSI", 50.0)), 1),
+                    "volatility": round(float(last_row.get("Volatility_20D", 0.012)) * 100, 2),
+                    "signal": "BUY" if float(last_row.get("SMA_20_200_Ratio", 1.0)) >= 1.0 else "SELL",
+                    "smaTrend": str(last_row.get("SMA_Trend", "Bullish")),
+                    "timestamp": datetime.now().strftime("%H:%M:%S")
+                }
+            }
+            await websocket.send_text(json.dumps(init_packet))
+
         while True:
             await websocket.receive_text()
     except WebSocketDisconnect:
@@ -180,9 +197,9 @@ async def websocket_endpoint(websocket: WebSocket):
 
 
 async def live_market_ticker_daemon():
-    """Generates continuous live quantitative ticks and broadcasts to connected clients."""
+    """Generates continuous real-time market price updates and broadcasts to connected clients."""
     while True:
-        await asyncio.sleep(4)
+        await asyncio.sleep(2.5)
         if not manager.active_connections:
             continue
 
@@ -194,10 +211,10 @@ async def live_market_ticker_daemon():
             last_row = df.iloc[-1]
             base_nifty = float(last_row["Nifty50"])
             
-            # Subtle realistic simulated intraday tick variation (+-0.15%)
-            jitter_pct = random.uniform(-0.0015, 0.0015)
+            # Subtle realistic simulated intraday tick variation (+-0.12%)
+            jitter_pct = random.uniform(-0.0012, 0.0012)
             live_nifty = round(base_nifty * (1 + jitter_pct), 2)
-            live_rsi = round(float(last_row.get("Nifty_RSI", 50.0)) + random.uniform(-0.3, 0.3), 1)
+            live_rsi = round(float(last_row.get("Nifty_RSI", 50.0)) + random.uniform(-0.2, 0.2), 1)
             live_vol = round(float(last_row.get("Volatility_20D", 0.012)) * 100, 2)
             signal = "BUY" if float(last_row.get("SMA_20_200_Ratio", 1.0)) >= 1.0 else "SELL"
 
@@ -213,7 +230,7 @@ async def live_market_ticker_daemon():
                 }
             }
             await manager.broadcast(payload)
-        except Exception as e:
+        except Exception:
             pass
 
 

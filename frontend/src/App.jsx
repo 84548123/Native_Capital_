@@ -13,11 +13,10 @@ import {
 import initialData from './initialData.json';
 import './App.css';
 
-// Dynamic API and WebSocket Base URLs (auto-detect local proxy vs direct vs production)
-const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-const API_BASE_URL = import.meta.env.VITE_API_URL || (isLocal ? "" : "https://native-capital.onrender.com");
+// Dynamic API and WebSocket Base URLs (binds to current host: Cloud Run / localhost / custom domain)
+const API_BASE_URL = import.meta.env.VITE_API_URL || "";
 const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-const WS_BASE_URL = import.meta.env.VITE_WS_URL || (isLocal ? `${wsProtocol}//${window.location.host}/ws/ledger` : "wss://native-capital.onrender.com/ws/ledger");
+const WS_BASE_URL = import.meta.env.VITE_WS_URL || `${wsProtocol}//${window.location.host}/ws/ledger`;
 
 function App() {
   const [activeTab, setActiveTab] = useState('overview');
