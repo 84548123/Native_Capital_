@@ -1,18 +1,38 @@
-name: Deploy Native Capital to Google Cloud Run
+name: CI/CD Pipeline - Test & Cloud Run Deploy
 
 on:
   push:
     branches:
       - main
-
-env:
-  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-  SERVICE_NAME: native-capital
-  REGION: us-central1
+  workflow_dispatch:
 
 jobs:
-  build-and-deploy:
-    name: Build & Deploy Fullstack Container
+  test-and-build:
+    name: Build & Verify Production Container
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Verify Dependencies & Quant Engines
+        run: |
+          pip install -r requirements.txt
+          python -c "import server, quant_engine, forecast_model; print('All core quantitative engines verified!')"
+
+      - name: Build Fullstack Docker Container
+        run: |
+          docker build -t native-capital:ci-test .
+
+  deploy-cloud-run:
+    name: Deploy to Google Cloud Run
+    needs: test-and-build
+    if: ${{ secrets.GCP_SA_KEY != '' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -27,7 +47,7 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
-      - name: Authorize Docker Push to Google Artifact Registry
+      - name: Authorize Docker Push
         run: gcloud auth configure-docker --quiet
 
       - name: Build and Push Docker Image
@@ -39,7 +59,7 @@ jobs:
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v2
         with:
-          service: ${{ env.SERVICE_NAME }}
+          service: native-capital
           image: gcr.io/${{ secrets.GCP_PROJECT_ID }}/native-capital:${{ github.sha }}
-          region: ${{ env.REGION }}
+          region: us-central1
           flags: '--allow-unauthenticated --memory=2Gi --cpu=1 --port=8080'
